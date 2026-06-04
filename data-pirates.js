@@ -41,14 +41,14 @@ const PIRATES = [
 
   // --- Straw Hat Pirates ---------------------------------------------------
   { n:"Luffy",   r:"Captain",       p:8, d:8, s:8, c:"Straw Hat Pirates", sp:[] },
-  { n:"Zoro",    r:"Right-Hand",    p:8, d:7, s:9, c:"Straw Hat Pirates", sp:[] },
+  { n:"Zoro",    r:"Right-Hand",    p:8, d:7, s:7, c:"Straw Hat Pirates", sp:[] },
   { n:"Nami",    r:"Navigator",     p:4, d:4, s:7, c:"Straw Hat Pirates", sp:[] },
-  { n:"Usopp",   r:"Sniper",        p:6, d:6, s:6, c:"Straw Hat Pirates", sp:[] },
-  { n:"Sanji",   r:"Chef",          p:8, d:7, s:8, c:"Straw Hat Pirates", sp:[] },
-  { n:"Chopper", r:"Doctor",        p:6, d:7, s:6, c:"Straw Hat Pirates", sp:[] },
-  { n:"Robin",   r:"Archaeologist", p:6, d:6, s:8, c:"Straw Hat Pirates", sp:[] },
-  { n:"Franky",  r:"Shipwright",    p:8, d:7, s:5, c:"Straw Hat Pirates", sp:[] },
-  { n:"Brook",   r:"Musician",      p:7, d:6, s:8, c:"Straw Hat Pirates", sp:[] },
+  { n:"Usopp",   r:"Sniper",        p:4, d:3, s:6, c:"Straw Hat Pirates", sp:[] },
+  { n:"Sanji",   r:"Chef",          p:7, d:6, s:8, c:"Straw Hat Pirates", sp:[] },
+  { n:"Chopper", r:"Doctor",        p:4, d:4, s:6, c:"Straw Hat Pirates", sp:[] },
+  { n:"Robin",   r:"Archaeologist", p:6, d:5, s:6, c:"Straw Hat Pirates", sp:[] },
+  { n:"Franky",  r:"Shipwright",    p:6, d:7, s:5, c:"Straw Hat Pirates", sp:[] },
+  { n:"Brook",   r:"Musician",      p:6, d:5, s:8, c:"Straw Hat Pirates", sp:[] },
   { n:"Jinbe",   r:"Helmsman",      p:8, d:8, s:6, c:"Straw Hat Pirates", sp:[] },
 
   // --- Whitebeard Pirates --------------------------------------------------
@@ -90,12 +90,12 @@ const PIRATES = [
 
   // --- Blackbeard Pirates --------------------------------------------------
   { n:"Blackbeard",     r:"Captain",    p:8, d:8, s:8, c:"Blackbeard Pirates", sp:[] },
-  { n:"Shiryu",         r:"Right-Hand", p:8, d:7, s:9, c:"Blackbeard Pirates", sp:[] },
-  { n:"Van Augur",      r:"Sniper",     p:8, d:5, s:8, c:"Blackbeard Pirates", sp:[] },
+  { n:"Shiryu",         r:"Right-Hand", p:8, d:7, s:8, c:"Blackbeard Pirates", sp:[] },
+  { n:"Van Augur",      r:"Sniper",     p:7, d:5, s:8, c:"Blackbeard Pirates", sp:[] },
   { n:"Doc Q",          r:"Doctor",     p:4, d:6, s:4, c:"Blackbeard Pirates", sp:[] },
   { n:"Laffitte",       r:"Navigator",  p:6, d:5, s:7, c:"Blackbeard Pirates", sp:[] },
-  { n:"Jesus Burgess",  r:"Crewmate",   p:9, d:7, s:6, c:"Blackbeard Pirates", sp:[] },
-  { n:"Vasco Shot",     r:"Crewmate",   p:8, d:7, s:5, c:"Blackbeard Pirates", sp:[] },
+  { n:"Jesus Burgess",  r:"Crewmate",   p:9, d:6, s:6, c:"Blackbeard Pirates", sp:[] },
+  { n:"Vasco Shot",     r:"Crewmate",   p:6, d:6, s:5, c:"Blackbeard Pirates", sp:[] },
   { n:"Sanjuan Wolf",   r:"Crewmate",   p:8, d:9, s:3, c:"Blackbeard Pirates", sp:[] },
   { n:"Catarina Devon", r:"Crewmate",   p:7, d:6, s:6, c:"Blackbeard Pirates", sp:[] },
   { n:"Avalo Pizarro",  r:"Crewmate",   p:6, d:6, s:5, c:"Blackbeard Pirates", sp:[] },
@@ -105,7 +105,6 @@ const PIRATES = [
   { n:"Doflamingo", r:"Captain",    p:8, d:8, s:8, c:"Donquixote Pirates", sp:[] },
   { n:"Vergo",      r:"Right-Hand", p:8, d:7, s:7, c:"Donquixote Pirates", sp:[] },
   { n:"Diamante",   r:"Crewmate",   p:7, d:7, s:6, c:"Donquixote Pirates", sp:[] },
-  { n:"Rosinante",  r:"Crewmate",   p:6, d:7, s:6, c:"Donquixote Pirates", sp:[] },
   { n:"Pica",       r:"Crewmate",   p:7, d:8, s:4, c:"Donquixote Pirates", sp:[] },
   { n:"Trebol",     r:"Crewmate",   p:6, d:7, s:4, c:"Donquixote Pirates", sp:[] },
   { n:"Sugar",      r:"Crewmate",   p:3, d:3, s:4, c:"Donquixote Pirates", sp:[] },
@@ -149,7 +148,7 @@ const PIRATES = [
 
   // --- Free Agents (vrij op de transfermarkt) ------------------------------
   //  cap:true = ook kiesbaar als captain; zo niet -> blijft op de markt.
-  { n:"Dracule Mihawk",    r:"Right-Hand", alt:["Crewmate"], cap:true, p:9, d:7, s:8, c:"Free Agent", sp:[] },
+  { n:"Dracule Mihawk",    r:"Right-Hand", alt:["Crewmate"], p:9, d:7, s:8, c:"Free Agent", sp:[] },
   { n:"Crocodile",         r:"Right-Hand", alt:["Crewmate"], cap:true, p:8, d:8, s:8, c:"Free Agent", sp:[] },
   { n:"Boa Hancock",       r:"Crewmate",   cap:true, p:8, d:7, s:8, c:"Free Agent", sp:[] },
   { n:"Sabo",              r:"Crewmate",   p:8, d:7, s:8, c:"Free Agent", sp:[] },
@@ -159,9 +158,9 @@ const PIRATES = [
   { n:"Bartolomeo",        r:"Crewmate",   p:6, d:7, s:5, c:"Free Agent", sp:[] },
   { n:"Bartholomew Kuma",  r:"Crewmate",   p:8, d:8, s:6, c:"Free Agent", sp:[] },
   { n:"Gecko Moria",       r:"Crewmate",   p:7, d:7, s:5, c:"Free Agent", sp:[] },
-  { n:"Loki",              r:"Right-Hand", alt:["Crewmate"], p:8, d:8, s:8, c:"Free Agent", sp:[] },
+  { n:"Loki",              r:"Right-Hand", alt:["Crewmate"], cap:true, p:8, d:8, s:8, c:"Free Agent", sp:[] },
   { n:"Mr 1. Daz Bones",   r:"Right-Hand", alt:["Crewmate"], p:7, d:6, s:7, c:"Free Agent", sp:[] },
-  { n:"Kozuki Oden",       r:"Right-Hand", alt:["Crewmate"], p:7, d:6, s:7, c:"Free Agent", sp:[] },
+  { n:"Kozuki Oden",       r:"Right-Hand", alt:["Crewmate"], cap:true, p:7, d:6, s:7, c:"Free Agent", sp:[] },
   { n:"Kozuki Momonosuke", r:"Crewmate",   p:6, d:6, s:6, c:"Free Agent", sp:[] },
   { n:"Yamato",            r:"Right-Hand", alt:["Crewmate"], p:8, d:7, s:8, c:"Free Agent", sp:[] },
   { n:"Kaku",              r:"Crewmate",   p:6, d:6, s:7, c:"Free Agent", sp:[] },
