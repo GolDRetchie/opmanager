@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Crew Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Spectral:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=2" />
+</head>
+<body>
+  <main class="app">
+
+    <!-- ============ SCREEN: NEW GAME ============ -->
+    <section id="screen-newgame" class="screen is-active">
+      <header class="brand">
+        <span class="brand__plaque">Crew Manager</span>
+        <p class="brand__tag">Pick a crew or continue where you left off</p>
+      </header>
+
+      <section class="panel reveal" style="--d:1">
+        <h2 class="panel__title">Saved games</h2>
+        <div id="saved-list" class="saved-list"></div>
+      </section>
+
+      <section class="panel reveal" style="--d:2">
+        <h2 class="panel__title">New game</h2>
+
+        <label class="field">
+          <span class="field__label">Crew name</span>
+          <input id="crew-name" type="text" maxlength="28" autocomplete="off"
+                 placeholder="E.g. The Sunrise Pirates" />
+        </label>
+
+        <div class="field">
+          <span class="field__label">Choose your captain</span>
+          <div class="carousel-wrap" id="carousel-wrap">
+            <div class="carousel" id="captain-carousel" role="listbox" aria-label="Choose your captain"></div>
+          </div>
+        </div>
+
+        <p class="berries">Starting funds: <span id="start-berries">—</span></p>
+
+        <p id="form-hint" class="form-hint">Enter a crew name and choose a captain to start.</p>
+        <button id="start-btn" class="btn-gold" type="button" disabled>Start new game</button>
+      </section>
+    </section>
+
+    <!-- ============ SCREEN: ALL SAVES ============ -->
+    <section id="screen-saves" class="screen">
+      <header class="brand"><span class="brand__plaque" style="font-size:28px">Saved games</span></header>
+      <section class="panel">
+        <h2 class="panel__title">Saved games <span id="saves-count" class="panel__count"></span></h2>
+        <div id="saves-all" class="saved-list"></div>
+      </section>
+      <div style="text-align:center;margin-top:6px"><button id="saves-back" class="btn-ghost" type="button">Back</button></div>
+    </section>
+
+    <!-- ============ SCREEN: HOME ============ -->
+    <section id="screen-home" class="screen">
+      <div id="home-content" class="home"></div>
+    </section>
+
+    <!-- ============ MODAL (confirm / info) ============ -->
+    <div id="modal-overlay" class="modal-overlay" aria-hidden="true">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <h3 id="modal-title" class="modal__title">Confirm</h3>
+        <p id="modal-msg" class="modal__msg"></p>
+        <div class="modal__actions">
+          <button id="modal-cancel" class="btn-soft" type="button">Cancel</button>
+          <button id="modal-confirm" class="btn-danger" type="button">Delete</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="data-pirates.js?v=1"></script>
+  <script src="game.js?v=2"></script>
+</body>
+</html>
