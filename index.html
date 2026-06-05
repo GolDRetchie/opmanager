@@ -7,12 +7,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Spectral:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=7" />
+  <link rel="stylesheet" href="styles.css?v=14" />
 </head>
 <body>
   <main class="app">
 
-    <!-- ============ SCREEN: NEW GAME ============ -->
+    <!-- ============ SCREEN: MAIN MENU ============ -->
     <section id="screen-newgame" class="screen is-active">
       <header class="brand">
         <span class="brand__plaque">Crew Manager</span>
@@ -24,9 +24,14 @@
         <div id="saved-list" class="saved-list"></div>
       </section>
 
-      <section class="panel reveal" style="--d:2">
-        <h2 class="panel__title">New game</h2>
+      <button id="new-game-btn" class="btn-gold" type="button">New game</button>
+    </section>
 
+    <!-- ============ SCREEN: NEW GAME SETUP ============ -->
+    <section id="screen-create" class="screen">
+      <header class="brand"><span class="brand__plaque" style="font-size:28px">New game</span></header>
+
+      <section class="panel reveal">
         <label class="field">
           <span class="field__label">Crew name</span>
           <input id="crew-name" type="text" maxlength="28" autocomplete="off"
@@ -40,11 +45,31 @@
           </div>
         </div>
 
+        <div class="field">
+          <span class="field__label">Difficulty</span>
+          <div class="diff-list" id="difficulty-list" role="group" aria-label="Choose difficulty">
+            <button type="button" class="diff-card" data-diff="easy" aria-pressed="false">
+              <div class="diff-card__name">Easy <span>&middot; East Blue</span></div>
+              <div class="diff-card__desc">Rivals develop slowly. Build your legend at your own pace.</div>
+            </button>
+            <button type="button" class="diff-card is-selected" data-diff="normal" aria-pressed="true">
+              <div class="diff-card__name">Normal <span>&middot; Paradise</span></div>
+              <div class="diff-card__desc">Rivals keep pace. Earn the top spot with sharp management.</div>
+            </button>
+            <button type="button" class="diff-card" data-diff="hard" aria-pressed="false">
+              <div class="diff-card__name">Hard <span>&middot; New World</span></div>
+              <div class="diff-card__desc">Rivals outgrow you. Only a master reaches Laugh Tale.</div>
+            </button>
+          </div>
+        </div>
+
         <p class="berries">Starting funds: <span id="start-berries">—</span></p>
 
         <p id="form-hint" class="form-hint">Enter a crew name and choose a captain to start.</p>
         <button id="start-btn" class="btn-gold" type="button" disabled>Start new game</button>
       </section>
+
+      <div style="text-align:center;margin-top:6px"><button id="create-back" class="btn-ghost" type="button">Back</button></div>
     </section>
 
     <!-- ============ SCREEN: ALL SAVES ============ -->
@@ -77,6 +102,18 @@
       <div id="training-content"></div>
     </section>
 
+    <section id="screen-league" class="screen">
+      <div id="league-content"></div>
+    </section>
+
+    <section id="screen-matchday" class="screen">
+      <div id="matchday-content"></div>
+    </section>
+
+    <section id="screen-battle" class="screen">
+      <div id="battle-content"></div>
+    </section>
+
     <!-- ============ MODAL (confirm / info) ============ -->
     <div id="modal-overlay" class="modal-overlay" aria-hidden="true">
       <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -91,7 +128,7 @@
 
   </main>
 
-  <script src="data-pirates.js?v=1"></script>
-  <script src="game.js?v=7"></script>
+  <script src="data-pirates.js?v=4"></script>
+  <script src="game.js?v=22"></script>
 </body>
 </html>
