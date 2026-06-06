@@ -1,6 +1,6 @@
 /* Crew Manager service worker — stale-while-revalidate cache.
    Bump CACHE version below to force-clear caches on next visit. */
-const CACHE = "opmanager-v2";
+const CACHE = "opmanager-v3";
 const APP_SHELL = [
   "./",
   "./index.html",
