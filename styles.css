@@ -857,11 +857,11 @@ body{ min-height:100dvh; }
 /* --- mobiel/landscape: home compact + battle vast op één scherm, geen scroll (v16) --- */
 @media (max-height: 600px){
   /* ---- home ---- */
-  body[data-screen="screen-home"] .app{ padding:10px 14px; max-width:640px; }
+  body[data-screen="screen-home"] .app{ padding:10px 14px; max-width:none; width:85%; }
 
   .home-top{ margin-bottom:10px; padding-bottom:8px; gap:8px 16px; }
   .home-top__av{ width:34px; height:34px; font-size:18px; }
-  .home-top__crew{ font-size:17px; }
+  .home-top__crew{ font-size:18px; }
   .home-top__cap{ font-size:11px; }
   .home-top__stats{ gap:16px; }
   .mini-stat__label{ font-size:9px; }
@@ -869,12 +869,12 @@ body{ min-height:100dvh; }
   .save-btn{ font-size:14px; padding:6px 11px; }
 
   .home-nav{ margin-bottom:10px; gap:8px; }
-  .nav-btn{ font-size:14px; padding:8px 6px; flex-basis:120px; box-shadow:0 3px 0 var(--gold-d); }
+  .nav-btn{ font-size:15px; padding:9px 6px; flex-basis:120px; box-shadow:0 3px 0 var(--gold-d); }
 
   .home-battle{ gap:10px; }
-  .battle-block{ flex:0 0 180px; width:180px; aspect-ratio:auto; min-height:0; padding:12px; }
-  .battle-block__label{ font-size:17px; }
-  .battle-block__opp{ font-size:19px; margin-top:5px; }
+  .battle-block{ flex:0 0 200px; width:200px; aspect-ratio:auto; min-height:0; padding:14px; }
+  .battle-block__label{ font-size:18px; }
+  .battle-block__opp{ font-size:20px; margin-top:5px; }
   .battle-block__note{ font-size:11px; margin-top:5px; }
   .home-go{ font-size:15px; padding:8px 16px; margin-top:10px; }
 
@@ -896,4 +896,17 @@ body{ min-height:100dvh; }
   .bt-result{ position:fixed; left:12px; right:12px; bottom:58px; margin:0; z-index:25; font-size:26px; padding:8px; }
   .bt-action{ position:fixed; left:0; right:0; bottom:10px; margin:0; z-index:25; }
   #bt-morgan{ position:fixed !important; }
+
+  /* ---- matchday / fixtures: compacter zodat het past ---- */
+  body[data-screen="screen-matchday"] .app{ max-width:none; width:85%; padding:8px 14px 16px; }
+  .md-top{ margin-bottom:6px; }
+  .md-title{ font-size:20px; }
+  .md-sub{ font-size:11px; margin-top:2px; }
+  .md-warn{ padding:6px 11px; font-size:12px; margin:5px 0 9px; }
+  .md-grid{ gap:8px; margin-bottom:10px; }
+  .md-block{ padding:9px 11px; }
+  .md-side{ font-size:14px; }
+  .md-vs{ font-size:13px; min-width:42px; }
+  .md-action{ margin-top:2px; }
+  .md-go{ font-size:16px; padding:9px 22px; }
 }
