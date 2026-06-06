@@ -856,8 +856,15 @@ body{ min-height:100dvh; }
 
 /* --- mobiel/landscape: home compact + battle vast op één scherm, geen scroll (v16) --- */
 @media (max-height: 600px){
+  /* ===== ALLE schermen: zelfde breedte, schaalt mee per toestel (%) ===== */
+  body[data-screen] .app{ width:85%; max-width:none; }
+
+  /* gedeelde koppen/balken compacter op lage schermen */
+  .mk-title,.lg-h,.cw-crew,.tg-crew,.md-title,.panel__title{ font-size:20px; }
+  .mk-top,.lg-top,.cw-top,.tg-top{ margin-bottom:8px; padding-bottom:8px; }
+
   /* ---- home ---- */
-  body[data-screen="screen-home"] .app{ padding:10px 14px; max-width:none; width:85%; }
+  body[data-screen="screen-home"] .app{ padding:10px 14px; }
 
   .home-top{ margin-bottom:10px; padding-bottom:8px; gap:8px 16px; }
   .home-top__av{ width:34px; height:34px; font-size:18px; }
@@ -868,25 +875,25 @@ body{ min-height:100dvh; }
   .mini-stat__val{ font-size:15px; }
   .save-btn{ font-size:14px; padding:6px 11px; }
 
-  .home-nav{ margin-bottom:10px; gap:8px; }
-  .nav-btn{ font-size:15px; padding:9px 6px; flex-basis:120px; box-shadow:0 3px 0 var(--gold-d); }
+  .home-nav{ margin-bottom:12px; gap:8px; }
+  .nav-btn{ font-size:15px; padding:11px 6px; flex-basis:120px; box-shadow:0 3px 0 var(--gold-d); }
 
-  .home-battle{ gap:10px; }
-  .battle-block{ flex:0 0 200px; width:200px; aspect-ratio:auto; min-height:0; padding:14px; }
-  .battle-block__label{ font-size:18px; }
-  .battle-block__opp{ font-size:20px; margin-top:5px; }
-  .battle-block__note{ font-size:11px; margin-top:5px; }
-  .home-go{ font-size:15px; padding:8px 16px; margin-top:10px; }
+  .home-battle{ gap:12px; }
+  .battle-block{ flex:0 0 210px; width:210px; aspect-ratio:auto; min-height:200px; padding:16px; }
+  .battle-block__label{ font-size:19px; }
+  .battle-block__opp{ font-size:21px; margin-top:6px; }
+  .battle-block__note{ font-size:12px; margin-top:6px; }
+  .home-go{ font-size:16px; padding:10px 18px; margin-top:12px; }
 
-  .battle-side{ gap:10px; }
-  .side-box{ padding:10px 13px; }
-  .side-box__title{ font-size:15px; }
-  .side-box__sub{ font-size:11px; margin-top:2px; }
+  .battle-side{ gap:12px; }
+  .side-box{ padding:13px 15px; }
+  .side-box__title{ font-size:16px; }
+  .side-box__sub{ font-size:12px; margin-top:3px; }
   .new-badge{ font-size:12px; padding:2px 9px; top:-8px; }
 
   /* ---- battle: alles op één vast scherm ---- */
   body[data-screen="screen-battle"]{ overflow:hidden; }
-  body[data-screen="screen-battle"] .app{ max-width:none; padding:8px 12px 60px; }
+  body[data-screen="screen-battle"] .app{ width:auto; max-width:none; padding:8px 12px 60px; }
   .bt-top{ margin-bottom:8px; }
   .bt-av{ width:38px; height:38px; font-size:20px; }
   .bt-nm{ font-size:15px; }
@@ -898,7 +905,7 @@ body{ min-height:100dvh; }
   #bt-morgan{ position:fixed !important; }
 
   /* ---- matchday / fixtures: compacter zodat het past ---- */
-  body[data-screen="screen-matchday"] .app{ max-width:none; width:85%; padding:8px 14px 16px; }
+  body[data-screen="screen-matchday"] .app{ padding:8px 14px 16px; }
   .md-top{ margin-bottom:6px; }
   .md-title{ font-size:20px; }
   .md-sub{ font-size:11px; margin-top:2px; }
@@ -909,4 +916,31 @@ body{ min-height:100dvh; }
   .md-vs{ font-size:13px; min-width:42px; }
   .md-action{ margin-top:2px; }
   .md-go{ font-size:16px; padding:9px 22px; }
+
+  /* ---- transfer market: compacter ---- */
+  .mk-bal{ gap:16px; }
+  .mk-tab{ font-size:14px; padding:7px 16px; }
+  .mk-filters{ padding:8px 11px; margin-bottom:10px; }
+  .mk-search{ font-size:14px; padding:7px 10px; }
+  .mk-chip{ font-size:12px; padding:5px 10px; }
+  .mk-table thead th{ padding:7px 10px; font-size:11px; }
+  .mk-table tbody td{ padding:6px 10px; font-size:13px; }
+  .mk-name b{ font-size:15px; }
+  .mk-av{ width:26px; height:26px; font-size:14px; }
+  .mk-bounty{ font-size:14px; }
+  .mk-rowbtn{ font-size:13px; padding:6px 14px; }
+
+  /* ---- league: tabel compacter ---- */
+  .lg-table thead th{ padding:6px; font-size:11px; }
+  .lg-table tbody td{ padding:6px; font-size:13px; }
+  .lg-name{ font-size:14px; }
+
+  /* ---- crew: schip lager zodat het past ---- */
+  .ship-col{ height:380px; }
+  .bench-title{ font-size:18px; }
+
+  /* ---- training: rijen compacter ---- */
+  .tcol{ padding:10px; }
+  .tcol-h{ font-size:18px; padding:4px; margin-bottom:8px; }
+  .ts{ font-size:15px; padding:7px 10px; margin-bottom:6px; }
 }
