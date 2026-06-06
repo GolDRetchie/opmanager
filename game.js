@@ -40,6 +40,14 @@ function baseBounty(stats){
 }
 /* a member's current bounty: stored value if grown (training/battles), else its base */
 function memberBounty(m){ return baseBounty(m); }
+/* Members enter play BELOW their data stats (their "potential") and grow into it via training/fights.
+   Captains are exempt (always 8-8-8). This keeps recruiting affordable: with 30M you can sign
+   ~2 strong members or ~3-4 rookies, instead of one overpriced star. */
+const MEMBER_START_SCALE = 0.62;
+const MEMBER_STAT_FLOOR  = 2;
+function enlistStat(v){ return Math.max(MEMBER_STAT_FLOOR, Math.round((v || 0) * MEMBER_START_SCALE)); }
+function enlistStats(b){ return { p:enlistStat(b.p), d:enlistStat(b.d), s:enlistStat(b.s) }; }
+function enlistPrice(b){ return baseBounty(enlistStats(b)); }
 const CAPTAIN_PREMIUM = 1.6;   // captains are the crew's most-wanted face
 function captainBounty(capStats, members){
   const base  = Math.round(baseBounty(capStats) * CAPTAIN_PREMIUM / 1e6) * 1e6;
@@ -459,18 +467,24 @@ const MARKET_SIZE = 12;   // OSM-style: only a handful of listings on the board 
 /* Each listing gets its own stat bonus so the board always has a spread:
    plenty of bargains (well below average) plus a few above-average names. Drifts up slowly. */
 function rollListingBonus(day){
-  const drift = Math.floor(((day || 1) - 1) * 0.15);
+  const d = day || 1;
+  const drift = Math.floor((d - 1) * 0.10);
   const r = Math.random();
-  let b;
-  if (r < 0.40)      b = -2 + Math.floor(Math.random() * 3);   // 40% bargains:  -2..0
-  else if (r < 0.80) b =  1 + Math.floor(Math.random() * 3);   // 40% mid:        1..3
-  else               b =  4 + Math.floor(Math.random() * 2);   // 20% standouts:  4..5
-  return b + drift;
+  // Days 1-2: narrow spread so 30M reliably lands 2 strong or 2-3 weaker recruits.
+  if (d <= 2){
+    if (r < 0.55) return -1 + drift;                                 // 55% cheap
+    else          return Math.floor(Math.random() * 2) + drift;      // 45% average (0..1)
+  }
+  // Day 3+: three visible tiers - bargains, average, and already-trained names that cost more.
+  if (r < 0.35)      return -1 + drift;                              // 35% cheap
+  else if (r < 0.70) return Math.floor(Math.random() * 2) + drift;   // 35% average (0..1)
+  else               return 2 + Math.floor(Math.random() * 3) + drift; // 30% trained-up (2..4)
 }
 function scaledMember(base, bonus){
   const a = bonus || 0;
+  const b = enlistStats(base);                                 // start below their data potential
   return { n:base.n, r:base.r, alt:base.alt || null, c:base.c, sp:base.sp || [],
-           p:Math.max(6, Math.min(STAT_CAP, base.p + a)), d:Math.max(6, Math.min(STAT_CAP, base.d + a)), s:Math.max(6, Math.min(STAT_CAP, base.s + a)) };
+           p:Math.max(MEMBER_STAT_FLOOR, Math.min(STAT_CAP, b.p + a)), d:Math.max(MEMBER_STAT_FLOOR, Math.min(STAT_CAP, b.d + a)), s:Math.max(MEMBER_STAT_FLOOR, Math.min(STAT_CAP, b.s + a)) };
 }
 
 /* everyone who could ever be bought: not a reserved captain, not your captain, not owned */
@@ -1212,18 +1226,20 @@ function allOwnedNames(save){
 function aiAffordable(save, crew){
   const owned = allOwnedNames(save);
   return PIRATES.filter(p => p.r !== "Captain" && !p.navy && !owned.has(p.n) &&
-                             baseBounty(p) <= crew.berries && crew.roster.length < 13);
+                             enlistPrice(p) <= crew.berries && crew.roster.length < 13);
 }
 function aiBuyOne(save, crew){
   const pool = aiAffordable(save, crew);
   if (!pool.length) return false;
-  pool.sort((a, b) => baseBounty(a) - baseBounty(b));                 // cheapest first: fill the crew, don't blow it on one star
+  pool.sort((a, b) => enlistPrice(a) - enlistPrice(b));               // cheapest first: fill the crew, don't blow it on one star
   const idx = Math.floor(Math.pow(Math.random(), 1.3) * pool.length); // bias toward affordable bodies, occasionally reach higher
   const base = pool[Math.min(idx, pool.length - 1)];
-  crew.berries -= baseBounty(base);
-  crew.roster.push(cloneMember(base));
+  const st   = enlistStats(base);                                     // rivals enlist at the same scaled level you do
+  const cost = baseBounty(st);
+  crew.berries -= cost;
+  crew.roster.push({ n:base.n, r:base.r, alt:base.alt || null, p:st.p, d:st.d, s:st.s, c:base.c, cond:100 });
   crew.bought = true;
-  logTransfer(save, save.day, crew.name, "free agent", base.n, baseBounty(base));
+  logTransfer(save, save.day, crew.name, "free agent", base.n, cost);
   return true;
 }
 function aiInitialReactiveBuys(save){
@@ -1246,7 +1262,7 @@ function aiDailyBuys(save){
   const target = Math.min(Math.round(AI_TARGET_SIZE * diff), 2 + Math.floor(day / AI_RAMP));   // slow ramp to a difficulty-scaled size
   save.league.crews.forEach(c => {
     let guard = 0;
-    while ((c.roster || []).length < target && guard++ < 2){            // at most +2 members/day
+    while ((c.roster || []).length < target && guard++ < 3){            // at most +2 members/day
       if (!aiBuyOne(save, c)) break;                                    // real characters from the shared pool; stop if broke / pool empty
     }
   });
@@ -1393,12 +1409,12 @@ function recoverConditions(save, full){
 }
 const MATCH_INCOME_BASE = 4000000;   // berries every crew earns on a fight day
 const MATCH_INCOME_WIN  = 3000000;   // extra for the winner (kept small to avoid market inflation)
-const MATCH_YOU_WIN     = 4000000;   // match purse on a win (you and rivals alike)
-const MATCH_YOU_LOSS    = 1500000;   // smaller purse on a draw/loss -> always net-positive, no death spiral
+const MATCH_YOU_WIN     = 3500000;   // near-flat purse: winning earns points, not a berry snowball
+const MATCH_YOU_LOSS    = 3000000;   // loss still pays well -> every crew grows at a similar rate, no body-count runaway
 const AI_STRENGTH       = 1.0;       // neutral: difficulty now comes from real AI growth, not a combat fudge
-const DIFFICULTY        = { easy:0.65, normal:0.8, hard:1.0 };   // AI development rate (sim-tuned): active player wins ~75/64/52% on easy/normal/hard
-const AI_TARGET_SIZE    = 4;         // crew size rivals build toward (scaled by difficulty); keeps the shared pool from being drained
-const AI_RAMP           = 4;         // +1 toward target every AI_RAMP days (slow build, not instant)
+const DIFFICULTY        = { easy:0.7, normal:0.9, hard:1.1 };   // AI development rate (sim-tuned)
+const AI_TARGET_SIZE    = 11;        // rivals build toward a near-full crew (members are cheap now); berry-gated in practice
+const AI_RAMP           = 2;         // build up quickly toward target
 function addBerries(save, i, amt){ if (i === 0) save.berries += amt; else save.league.crews[i - 1].berries += amt; }
 function grantMatchIncome(save){
   const md = save.matchday;
