@@ -256,20 +256,27 @@ function checkUnlocks(save, name, oldSum, newSum){
   }
 }
 const ROLES_BY_STAT = { p:["Swordsman","Sniper"], d:["Helmsman","Shipwright","Doctor"], s:["Musician","Archaeologist","Chef"] };
-function suggestRolesFor(m){
-  const max = Math.max(m.p||0, m.d||0, m.s||0);
+function suggestRolesFor(stats){
   const out = [];
-  ["p","d","s"].forEach(k => { if ((m[k]||0) === max) ROLES_BY_STAT[k].forEach(r => { if (out.indexOf(r) < 0) out.push(r); }); });
+  stats.forEach(k => ROLES_BY_STAT[k].forEach(r => { if (out.indexOf(r) < 0) out.push(r); }));
   return out;
 }
-const PROMOTE_THRESHOLD = 43;
+const PROMOTE_THRESHOLDS = [43, 63];   // first offer / one follow-up after a decline
 function checkPromotion(save, m){
-  if (!m || m.r !== "Crewmate" || m.promoOffered) return;
+  if (!m || m.r !== "Crewmate") return;
+  if ((save._pendingPromos || []).some(p => p.name === m.n)) return;   // already queued
+  const offers = m.promoCount || 0;
+  if (offers >= PROMOTE_THRESHOLDS.length) return;                      // out of chances
   const sum = (m.p || 0) + (m.d || 0) + (m.s || 0);
-  if (sum < PROMOTE_THRESHOLD) return;
-  m.promoOffered = true;
+  if (sum < PROMOTE_THRESHOLDS[offers]) return;
+  const declined = m.promoDeclined || [];
+  const remaining = ["p","d","s"].filter(k => declined.indexOf(k) < 0);
+  if (!remaining.length) return;
+  let max = -1;
+  remaining.forEach(k => { if ((m[k]||0) > max) max = (m[k]||0); });
+  const stats = remaining.filter(k => (m[k]||0) === max);
   save._pendingPromos = save._pendingPromos || [];
-  save._pendingPromos.push({ name: m.n });
+  save._pendingPromos.push({ name: m.n, stats: stats });
 }
 
 /* ---- progression popups (unlocks + promotions) ----
@@ -336,20 +343,22 @@ function showPromoChoice(save, idx, done){
   const promo = list[idx];
   const m = (save.roster || []).find(x => x.n === promo.name);
   if (!m){ showPromoChoice(save, idx + 1, done); return; }   // member no longer in crew
-  const roles = suggestRolesFor(m);
-  const max = Math.max(m.p||0, m.d||0, m.s||0);
-  const tops = []; if ((m.p||0)===max) tops.push("P"); if ((m.d||0)===max) tops.push("D"); if ((m.s||0)===max) tops.push("S");
+  const stats = (promo.stats && promo.stats.length) ? promo.stats : ["p","d","s"];   // fallback for legacy entries
+  const roles = suggestRolesFor(stats);
+  const offerStr = stats.map(s => s.toUpperCase()).join("/");
+  const isFollowUp = !!(m.promoDeclined && m.promoDeclined.length);
+  const subtitle = isFollowUp ? "They&rsquo;ve kept growing &mdash; another path opens up" : "They&rsquo;ve earned their stripes &mdash; choose a specialty";
   const counter = list.length > 1 ? ' <span style="font-family:var(--body);font-size:13px;color:var(--ink-2);font-weight:400;font-style:italic;letter-spacing:0">(' + (idx + 1) + ' of ' + list.length + ')</span>' : '';
   const cols = roles.length <= 2 ? "1fr 1fr" : (roles.length <= 4 ? "1fr 1fr" : "1fr 1fr 1fr");
   const roleBtns = roles.map(r => '<button class="pro-role" data-role="' + escapeHtml(r) + '" style="font-family:var(--display);font-weight:400;font-size:16px;letter-spacing:.5px;color:#3a2708;background:linear-gradient(180deg,#f4cf6a,#e7b94a);border:2px solid #9a6b1e;border-radius:9px;padding:10px 8px;cursor:pointer;box-shadow:0 4px 0 #9a6b1e;text-align:center">' + escapeHtml(r) + '</button>').join("");
   els.modalTitle.innerHTML = "A crewmate steps forward" + counter;
   els.modalMsg.innerHTML =
-    '<p style="font-size:14px;color:var(--ink-2);margin:0 0 14px;font-style:italic">They&rsquo;ve earned their stripes &mdash; choose a specialty</p>' +
+    '<p style="font-size:14px;color:var(--ink-2);margin:0 0 14px;font-style:italic">' + subtitle + '</p>' +
     '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#f7ecca;border:1.5px solid #b79a63;border-radius:10px;margin-bottom:16px">' +
       '<div style="width:42px;height:42px;border-radius:9px;background:' + colorFor(m.n) + ';display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--display);font-size:24px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.22);flex:0 0 auto">' + initial(m.n) + '</div>' +
       '<div style="flex:1;min-width:0">' +
         '<div style="font-family:var(--display);font-size:20px;color:var(--ink);line-height:1.1;letter-spacing:.4px">' + escapeHtml(m.n) + '</div>' +
-        '<div style="font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums;letter-spacing:.4px;margin-top:2px">P <b style="color:var(--ink)">' + (m.p||0) + '</b> &middot; D <b style="color:var(--ink)">' + (m.d||0) + '</b> &middot; S <b style="color:var(--ink)">' + (m.s||0) + '</b> &middot; top: <b style="color:var(--ink)">' + tops.join("/") + '</b></div>' +
+        '<div style="font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums;letter-spacing:.4px;margin-top:2px">P <b style="color:var(--ink)">' + (m.p||0) + '</b> &middot; D <b style="color:var(--ink)">' + (m.d||0) + '</b> &middot; S <b style="color:var(--ink)">' + (m.s||0) + '</b> &middot; offering: <b style="color:var(--ink)">' + offerStr + '</b></div>' +
       '</div>' +
     '</div>' +
     '<div style="font-family:var(--body);font-size:13px;font-weight:600;color:var(--ink-2);text-transform:uppercase;letter-spacing:.6px;margin:0 0 8px">Choose specialty</div>' +
@@ -374,6 +383,9 @@ function showPromoChoice(save, idx, done){
     });
   });
   els.modalMsg.querySelector(".pro-keep").addEventListener("click", () => {
+    m.promoCount = (m.promoCount || 0) + 1;
+    m.promoDeclined = m.promoDeclined || [];
+    (promo.stats || []).forEach(s => { if (m.promoDeclined.indexOf(s) < 0) m.promoDeclined.push(s); });
     pushInbox(save, "info", "You decided to keep <b>" + escapeHtml(m.n) + "</b> as a Crewmate.");
     persistSave(save);
     showPromoChoice(save, idx + 1, done);

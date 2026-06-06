@@ -41,10 +41,18 @@ function goHome(save){
                    '<span class="battle-block__note">' + (t.champion === 0 ? "you conquered the Grand Line &mdash; the journey is complete" : "the Grand Tournament is over") + '</span>' +
                    '<button class="btn-gold home-go" id="home-fight" data-fight="final" type="button">View bracket</button>';
     } else {
-      fightInner = '<span class="battle-block__label">Laugh Tale</span>' +
-                   '<span class="battle-block__opp">Grand Tournament</span>' +
-                   '<span class="battle-block__note">the finale &mdash; top 8 crews, single elimination</span>' +
-                   '<button class="btn-gold home-go" id="home-fight" data-fight="final" type="button">Enter</button>';
+      const qualifies = save.tournament ? !save.tournament.playerOut : playerQualifiesForTournament(save);
+      if (qualifies){
+        fightInner = '<span class="battle-block__label">Laugh Tale</span>' +
+                     '<span class="battle-block__opp">Grand Tournament</span>' +
+                     '<span class="battle-block__note">the finale &mdash; top 8 crews, single elimination</span>' +
+                     '<button class="btn-gold home-go" id="home-fight" data-fight="final" type="button">Enter</button>';
+      } else {
+        fightInner = '<span class="battle-block__label">Laugh Tale</span>' +
+                     '<span class="battle-block__opp">You didn\'t qualify</span>' +
+                     '<span class="battle-block__note">the top 8 crews fight for the title &mdash; watch the finale</span>' +
+                     '<button class="btn-gold home-go" id="home-fight" data-fight="final" type="button">Watch</button>';
+      }
     }
   } else {
     const played = save.matchday && save.matchday.day === save.day && save.matchday.played;

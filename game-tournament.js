@@ -3,17 +3,23 @@
 /* ====================================================================
    Laugh Tale Grand Tournament (day 30) — single-elimination, top 8 by points
    ==================================================================== */
+function playerQualifiesForTournament(save){
+  const N = leagueSize(save);
+  const order = []; for (let i = 0; i < N; i++) order.push(i);
+  order.sort((a, b) => { const ra = teamRecord(save, a), rb = teamRecord(save, b); return (rb.pts - ra.pts) || (teamBounty(save, b) - teamBounty(save, a)); });
+  return order.slice(0, Math.min(8, N)).indexOf(0) >= 0;
+}
 function seedTournament(save){
   const N = leagueSize(save);
   const order = []; for (let i = 0; i < N; i++) order.push(i);
   order.sort((a, b) => { const ra = teamRecord(save, a), rb = teamRecord(save, b); return (rb.pts - ra.pts) || (teamBounty(save, b) - teamBounty(save, a)); });
   const seeds = order.slice(0, Math.min(8, N));
-  if (seeds.indexOf(0) < 0) seeds[seeds.length - 1] = 0;   // you always make the cut
+  const qualified = seeds.indexOf(0) >= 0;
   while (seeds.length < 8) seeds.push(-1);
   const S = seeds;
   const r0 = [ { a:S[0], b:S[7], w:null }, { a:S[3], b:S[4], w:null }, { a:S[2], b:S[5], w:null }, { a:S[1], b:S[6], w:null } ];
   r0.forEach(m => { if (m.b === -1) m.w = m.a; else if (m.a === -1) m.w = m.b; });
-  save.tournament = { rounds:[r0], round:0, done:false, champion:null, playerOut:false, outRound:null };
+  save.tournament = { rounds:[r0], round:0, done:false, champion:null, playerOut: !qualified, outRound: qualified ? null : "qualifiers" };
 }
 function tourResolveAi(save){
   save.tournament.rounds[save.tournament.round].forEach(m => {
@@ -28,7 +34,14 @@ function tourBuildNext(save){
 }
 const TOUR_ROUND_NAMES = ["Quarter-final", "Semi-final", "Final"];
 function openTournament(save){
-  if (!save.tournament){ seedTournament(save); tourResolveAi(save); persistSave(save); }
+  // migrate stale tournaments seeded before the qualification fix (player was force-included)
+  if (save.tournament && !save.tournament.playerOut && !playerQualifiesForTournament(save)) save.tournament = null;
+  if (!save.tournament){
+    seedTournament(save);
+    tourResolveAi(save);
+    if (save.tournament.playerOut) while (!save.tournament.done) tourBuildNext(save);   // didn't qualify: play it all out
+    persistSave(save);
+  }
   renderTournament(save);
 }
 function startTournamentMatch(save, oppIndex){
