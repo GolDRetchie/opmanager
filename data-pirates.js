@@ -208,3 +208,16 @@ const PIRATES = [
 
 // Beschikbaar maken voor de browser
 if (typeof window !== "undefined") { window.PIRATES = PIRATES; }
+
+// --- Special-attack effecten (jij beheert dit) ---------------------------
+//  "fire"  = vonken + warme flash      "smoke" = zachte witte rookpluimen
+//  Niet in de lijst = geen extra effect. De KLEUR (goud/groen voor jouw crew,
+//  rood voor de tegenstander) gaat automatisch op basis van wie aanvalt.
+const SP_FX = {
+  "Red Hawk":"fire", "Fire Fist":"fire", "Flame Commandment":"fire", "Fire Bird Star":"fire",
+  "Flame Dragon King":"fire", "Diable Jambe":"fire", "Hell Memories":"fire", "Heat Palm":"fire",
+  "Flame Breath":"fire", "Boro Breath":"fire", "Great Eruption":"fire", "Hound Blaze":"fire",
+  "Overheat":"fire", "Tabasco Star":"fire",
+  "White Blow":"smoke", "White Snake":"smoke", "Ice Age":"smoke", "Ice Saber":"smoke",
+};
+if (typeof window !== "undefined") { window.SP_FX = SP_FX; }

@@ -27,6 +27,20 @@ function fightersOf(save, i){
 }
 function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
 
+/* Detect a special-attack beat from its broadcast markup and pull out who/what/where.
+   Direction + tint follow the ATTACKER's side (first tagged name); the per-attack
+   effect comes from SP_FX in data-pirates.js: "fire", "smoke", or absent for none. */
+function btSpecialInfo(text){
+  if (!text || text.indexOf("<i>") < 0) return null;
+  const atk = (text.match(/<i>([\s\S]*?)<\/i>/) || [])[1] || "";
+  const names = []; const re = /<b class="bt-(you|opp)">([\s\S]*?)<\/b>/g; let m;
+  while ((m = re.exec(text))) names.push({ side:m[1], name:m[2] });
+  if (!names.length || !String(atk).trim()) return null;
+  const map = (typeof window !== "undefined" && window.SP_FX) ? window.SP_FX : null;
+  const fx = (map && map[atk]) ? map[atk] : "none";
+  return { attack:atk, attacker:names[0].name, fromYou:names[0].side === "you", target:names[1] ? names[1].name : "", fx:fx };
+}
+
 function buildBattleScript(ctx){
   const openT = [
     "Big News Morgan here, live{ISL} &mdash; and we are underway!",
@@ -89,9 +103,12 @@ function buildBattleScript(ctx){
   ctx.you.concat(ctx.opp || []).forEach(f => { if (f && f.sp && f.sp.length){ const av = availableSp(f.sp, f.sum || 0); if (av.length) blowMap[f.name] = av; } });
   if (ctx.isNavy && ctx.admiral){ const a = spByName("Admiral " + ctx.admiral); if (a.length) blowMap["Admiral " + ctx.admiral] = a; }   // admirals: all moves unlocked
   const blowFor = (n) => (blowMap[n] && blowMap[n].length) ? pick(blowMap[n]) : null;
+  // A full-takeover animation fires on every special, so keep them rare: at most
+  // SP_MAX mid-fight specials (the finishing blow below is always allowed one).
+  let spUsed = 0; const SP_MAX = 2;
   const strike = (A, B) => {
     const bl = blowFor(A);
-    if (bl && Math.random() < 0.45) return pick(spStrikeT).replace("{A}", tag(A)).replace("{B}", tag(B)).replace("{BL}", bl);
+    if (bl && spUsed < SP_MAX && Math.random() < 0.45){ spUsed++; return pick(spStrikeT).replace("{A}", tag(A)).replace("{B}", tag(B)).replace("{BL}", bl); }
     return tag(A) + pick(strikeT) + tag(B) + "!";
   };
   const speedMap = {};
@@ -527,6 +544,108 @@ function showVictory(save){
   els.modalConfirm.focus();
 }
 
+/* ============================================================
+   Special-attack takeover (cinematic full-screen FX over the broadcast)
+   - direction + tint follow the attacker's side: your crew runs gold/green
+     from left to right, the opposition runs red from right to left
+   - per-attack effect (fire / smoke / none) comes from window.SP_FX
+   ============================================================ */
+const SX_PAL = {
+  you:{ name:"#f4cf6a", uses:"#8ee6b8", tgt:"#9fe7c0", beam:"rgba(244,207,106,.85)", glow:"rgba(201,169,110,.55)",
+        flash:"radial-gradient(circle at 50% 48%,rgba(255,240,205,.85),transparent 62%)", dim:"rgba(5,18,16,.74)",
+        fire:["#ffd24a","#ff9a1e"], smoke:"rgba(225,245,232,.66)" },
+  opp:{ name:"#ff7a66", uses:"#f3a79a", tgt:"#f0a99c", beam:"rgba(226,75,74,.82)", glow:"rgba(226,75,74,.5)",
+        flash:"radial-gradient(circle at 50% 48%,rgba(255,95,70,.6),transparent 62%)", dim:"rgba(20,5,7,.76)",
+        fire:["#ff7a2a","#e23b2a"], smoke:"rgba(245,224,224,.66)" }
+};
+function ensureFxEl(){
+  if (battle._fxEl && battle._fxEl.parentNode) return battle._fxEl;
+  const ov = document.createElement("div");
+  ov.id = "bt-spfx";
+  ov.style.cssText = "position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:30;display:none";
+  ov.innerHTML =
+    '<div class="sx-dim" style="position:absolute;inset:0;opacity:0"></div>' +
+    '<div class="sx-beam" style="position:absolute;top:0;width:45%;height:100%;opacity:0"></div>' +
+    '<div class="sx-flash" style="position:absolute;inset:0;opacity:0"></div>' +
+    '<div class="sx-att" style="position:absolute;top:calc(50% - 38px);text-align:center;opacity:0">' +
+      '<div class="sx-av" style="width:52px;height:52px;border-radius:11px;display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--display);font-style:italic;font-size:27px;margin:0 auto;box-shadow:inset 0 -3px 0 rgba(0,0,0,.22)"></div>' +
+      '<div class="sx-uses" style="margin-top:6px;font-family:var(--display);font-size:12px;font-style:italic;letter-spacing:.12em"></div>' +
+    '</div>' +
+    '<div class="sx-name" style="position:absolute;top:calc(50% - 24px);left:0;right:0;text-align:center;font-family:var(--display);font-style:italic;font-weight:400;font-size:38px;letter-spacing:.01em;opacity:0"></div>' +
+    '<div class="sx-tgt" style="position:absolute;top:calc(50% + 36px);font-family:var(--display);font-size:14px;font-style:italic;opacity:0"></div>';
+  els.battle.appendChild(ov);
+  battle._fxEl = ov;
+  return ov;
+}
+function clearSpecialFx(){
+  (battle._fxTimers || []).forEach(clearTimeout); battle._fxTimers = [];
+  const ov = battle._fxEl; if (!ov) return;
+  ov.querySelectorAll(".sx-pt").forEach(e => e.remove());
+  ov.style.display = "none"; ov.style.pointerEvents = "none"; ov.onclick = null;
+  ["sx-dim","sx-beam","sx-flash","sx-att","sx-name","sx-tgt"].forEach(c => { const e = ov.querySelector("." + c); if (e){ e.style.transition = "none"; e.style.opacity = 0; e.style.transform = ""; } });
+}
+function fxSpawn(ov, type, pal){
+  const w = ov.clientWidth, h = ov.clientHeight, cx = w / 2, cy = h / 2;
+  const n = type === "fire" ? 12 : 7;
+  for (let i = 0; i < n; i++){
+    const d = document.createElement("div"); d.className = "sx-pt";
+    if (type === "fire"){
+      const s = 6 + Math.random() * 10, col = pal.fire[Math.random() < 0.5 ? 0 : 1];
+      d.style.cssText = "position:absolute;border-radius:50%;width:" + s + "px;height:" + s + "px;background:" + col + ";left:" + (cx - 34 + Math.random() * 68) + "px;top:" + (cy + 12) + "px;opacity:0;pointer-events:none";
+      ov.appendChild(d);
+      battle._fxTimers.push(setTimeout(() => { d.style.transition = "transform .8s ease-out,opacity .8s ease-out"; d.style.opacity = .95; d.style.transform = "translate(" + (-28 + Math.random() * 56) + "px," + (-70 - Math.random() * 75) + "px) scale(.3)"; }, 30 + i * 22));
+      battle._fxTimers.push(setTimeout(() => { d.style.opacity = 0; }, 1380));
+    } else {
+      const s = 36 + Math.random() * 42;
+      d.style.cssText = "position:absolute;border-radius:50%;width:" + s + "px;height:" + s + "px;background:radial-gradient(circle," + pal.smoke + ",transparent 70%);left:" + (cx - 54 + Math.random() * 108) + "px;top:" + (cy - 22 + Math.random() * 44) + "px;opacity:0;pointer-events:none";
+      ov.appendChild(d);
+      battle._fxTimers.push(setTimeout(() => { d.style.transition = "transform 1.1s ease-out,opacity 1.1s ease-out"; d.style.opacity = .6; d.style.transform = "translate(" + (-42 + Math.random() * 84) + "px,-30px) scale(1.7)"; }, 30 + i * 40));
+      battle._fxTimers.push(setTimeout(() => { d.style.opacity = 0; }, 1480));
+    }
+  }
+}
+function playSpecialFx(info, done){
+  const ov = ensureFxEl();
+  clearSpecialFx();
+  const pal = SX_PAL[info.fromYou ? "you" : "opp"], you = info.fromYou;
+  const dim = ov.querySelector(".sx-dim"), beam = ov.querySelector(".sx-beam"), flash = ov.querySelector(".sx-flash");
+  const att = ov.querySelector(".sx-att"), av = ov.querySelector(".sx-av"), uses = ov.querySelector(".sx-uses");
+  const name = ov.querySelector(".sx-name"), tgt = ov.querySelector(".sx-tgt");
+
+  av.textContent = initial(info.attacker); av.style.background = colorFor(info.attacker);
+  uses.textContent = String(info.attacker).toUpperCase() + " USES"; uses.style.color = pal.uses;
+  name.textContent = info.attack; name.style.color = pal.name; name.style.textShadow = "0 2px 22px " + pal.glow;
+  tgt.textContent = info.target ? ("on " + info.target) : ""; tgt.style.color = pal.tgt;
+  dim.style.background = pal.dim; flash.style.background = pal.flash;
+  beam.style.background = "linear-gradient(100deg,transparent," + pal.beam + ",transparent)";
+
+  if (you){ att.style.left = "24px"; att.style.right = "auto"; tgt.style.right = "24px"; tgt.style.left = "auto"; }
+  else { att.style.left = "auto"; att.style.right = "24px"; tgt.style.left = "24px"; tgt.style.right = "auto"; }
+
+  // initial states (offsets follow the direction of travel)
+  att.style.transition = "none"; att.style.opacity = 0; att.style.transform = "translateX(" + (you ? "-26px" : "26px") + ")";
+  name.style.transition = "none"; name.style.opacity = 0; name.style.transform = "translateX(" + (you ? "-30px" : "30px") + ")";
+  beam.style.transition = "none"; beam.style.opacity = 0; beam.style.left = you ? "-45%" : "100%"; beam.style.transform = "skewX(" + (you ? "-16deg" : "16deg") + ")";
+
+  ov.style.display = "block"; ov.style.pointerEvents = "auto";
+  void ov.offsetWidth;
+
+  let finished = false;
+  const finish = () => { if (finished) return; finished = true; clearSpecialFx(); if (done) done(); };
+  ov.onclick = finish;   // tap anywhere on the battle screen to skip the takeover
+
+  const T = battle._fxTimers;
+  T.push(setTimeout(() => { dim.style.transition = "opacity .2s"; dim.style.opacity = 1; }, 0));
+  T.push(setTimeout(() => { att.style.transition = "opacity .3s,transform .3s"; att.style.opacity = 1; att.style.transform = "translateX(0)"; }, 110));
+  T.push(setTimeout(() => { name.style.transition = "opacity .16s,transform .4s cubic-bezier(.2,1.5,.4,1)"; name.style.opacity = 1; name.style.transform = "translateX(0)"; }, 310));
+  T.push(setTimeout(() => { beam.style.transition = "left .36s ease,opacity .1s"; beam.style.opacity = 1; beam.style.left = you ? "100%" : "-45%"; if (info.fx === "fire" || info.fx === "smoke") fxSpawn(ov, info.fx, pal); }, 540));
+  T.push(setTimeout(() => { flash.style.transition = "opacity .08s"; flash.style.opacity = 1; }, 600));
+  T.push(setTimeout(() => { tgt.style.transition = "opacity .3s"; tgt.style.opacity = 1; }, 640));
+  T.push(setTimeout(() => { flash.style.transition = "opacity .45s"; flash.style.opacity = 0; }, 700));
+  T.push(setTimeout(() => { [dim, att, name, tgt].forEach(e => { e.style.transition = "opacity .3s"; e.style.opacity = 0; }); }, 1500));
+  T.push(setTimeout(finish, 1860));
+}
+
 function openBattle(save){
   const isl = islandFor(save.day);
   if (!save.matchday || save.matchday.day !== save.day){ save.matchday = { day:save.day, played:false, results:null }; }
@@ -569,7 +688,7 @@ function renderBattleFrame(isl, oppIndex, admiral){
     '<div class="bt-top">' +
       '<div class="bt-team"><span class="bt-av" style="background:' + colorFor(save.crew) + '">' + initial(save.crew) + '</span>' +
         '<span class="bt-nm">' + escapeHtml(save.crew) + '</span></div>' +
-      '<div class="bt-clock"><span id="bt-min">0</span><span class="bt-min-mark">\u2032</span></div>' +
+      '<div class="bt-live"><span class="bt-live-dot"></span>Live</div>' +
       '<div class="bt-team bt-team-r"><span class="bt-nm">' + escapeHtml(oppName) + '</span>' +
         '<span class="bt-av" style="background:' + oppColor + '">' + initial(oppName) + '</span></div>' +
     '</div>' +
@@ -587,6 +706,8 @@ function renderBattleFrame(isl, oppIndex, admiral){
       '<button class="btn-ghost" id="bt-skip" type="button">Skip &raquo;</button>' +
       '<button class="btn-gold bt-cont" id="bt-cont" type="button" style="display:none">Continue &#9654;</button>' +
     '</div>';
+  els.battle.style.position = "relative";   // anchor the takeover overlay
+  battle._fxEl = null; battle._fxTimers = [];
   $("bt-speed").addEventListener("click", () => {
     battle.speed = battle.speed === 1 ? 2 : 1;
     $("bt-speed").textContent = battle.speed === 1 ? "x2" : "x1";
@@ -612,13 +733,30 @@ function emitBeat(b){
 }
 function battleTick(){
   battle.clock += 1;
-  const m = $("bt-min"); if (m) m.textContent = battle.clock;
-  while (battle.idx < battle.beats.length && battle.beats[battle.idx].minute <= battle.clock){ emitBeat(battle.beats[battle.idx]); battle.idx++; }
-  if (battle.idx >= battle.beats.length){ clearInterval(battle.timer); battle.timer = null; battleFinish(); }
+  pumpBeats();
+}
+/* Process every beat that's due. On a special-attack beat: emit the line, pause the
+   timer, play the takeover, then resume from the callback. */
+function pumpBeats(){
+  while (battle.idx < battle.beats.length && battle.beats[battle.idx].minute <= battle.clock){
+    const b = battle.beats[battle.idx]; battle.idx++;
+    emitBeat(b);
+    const sp = btSpecialInfo(b.text);
+    if (sp){
+      if (battle.timer){ clearInterval(battle.timer); battle.timer = null; }
+      playSpecialFx(sp, () => {
+        if (battle.idx < battle.beats.length) startBattleTimer();
+        else battleFinish();
+      });
+      return;
+    }
+  }
+  if (battle.idx >= battle.beats.length){ if (battle.timer){ clearInterval(battle.timer); battle.timer = null; } battleFinish(); }
 }
 function battleSkip(){
   if (battle.timer){ clearInterval(battle.timer); battle.timer = null; }
-  battle.clock = battle.lastMin; const m = $("bt-min"); if (m) m.textContent = battle.lastMin;
+  clearSpecialFx();
+  battle.clock = battle.lastMin;
   while (battle.idx < battle.beats.length){ emitBeat(battle.beats[battle.idx]); battle.idx++; }
   battleFinish();
 }
