@@ -848,9 +848,16 @@ body{ min-height:100dvh; }
 .mk-badge-new{ background:linear-gradient(180deg,#e24b4a,#a3331f); }
 .mk-badge-sale{ background:linear-gradient(180deg,#3a93d6,#1d6aa8); }
 
-/* --- mobiel/landscape: home compact op één scherm, geen scroll --- */
+/* --- battle-feed: alleen de nieuwste, vervagend, nooit scrollen (v16) --- */
+.bt-feed{ max-height:none; overflow:hidden; }
+.bt-feed-line:nth-child(1){ opacity:.75; }
+.bt-feed-line:nth-child(2){ opacity:.4; }
+.bt-feed-line:nth-child(n+3){ display:none; }
+
+/* --- mobiel/landscape: home compact + battle vast op één scherm, geen scroll (v16) --- */
 @media (max-height: 600px){
-  body[data-screen="screen-home"] .app{ padding:10px 14px; }
+  /* ---- home ---- */
+  body[data-screen="screen-home"] .app{ padding:10px 14px; max-width:640px; }
 
   .home-top{ margin-bottom:10px; padding-bottom:8px; gap:8px 16px; }
   .home-top__av{ width:34px; height:34px; font-size:18px; }
@@ -876,4 +883,17 @@ body{ min-height:100dvh; }
   .side-box__title{ font-size:15px; }
   .side-box__sub{ font-size:11px; margin-top:2px; }
   .new-badge{ font-size:12px; padding:2px 9px; top:-8px; }
+
+  /* ---- battle: alles op één vast scherm ---- */
+  body[data-screen="screen-battle"]{ overflow:hidden; }
+  body[data-screen="screen-battle"] .app{ max-width:none; padding:8px 12px 60px; }
+  .bt-top{ margin-bottom:8px; }
+  .bt-av{ width:38px; height:38px; font-size:20px; }
+  .bt-nm{ font-size:15px; }
+  .bt-stage{ margin-bottom:8px; padding:12px; min-height:0; }
+  .bt-line{ font-size:18px; }
+  .bt-feed-line{ font-size:13px; padding:7px 11px; }
+  .bt-result{ position:fixed; left:12px; right:12px; bottom:58px; margin:0; z-index:25; font-size:26px; padding:8px; }
+  .bt-action{ position:fixed; left:0; right:0; bottom:10px; margin:0; z-index:25; }
+  #bt-morgan{ position:fixed !important; }
 }
