@@ -579,6 +579,7 @@ function ensureFxEl(){
 }
 function clearSpecialFx(){
   (battle._fxTimers || []).forEach(clearTimeout); battle._fxTimers = [];
+  hideMorgan();
   const ov = battle._fxEl; if (!ov) return;
   ov.querySelectorAll(".sx-pt").forEach(e => e.remove());
   ov.style.display = "none"; ov.style.pointerEvents = "none"; ov.onclick = null;
@@ -623,11 +624,11 @@ function playSpecialFx(info, done){
   else { att.style.left = "auto"; att.style.right = "24px"; tgt.style.left = "24px"; tgt.style.right = "auto"; }
 
   // initial states (offsets follow the direction of travel)
-  att.style.transition = "none"; att.style.opacity = 0; att.style.transform = "translateX(" + (you ? "-26px" : "26px") + ")";
   name.style.transition = "none"; name.style.opacity = 0; name.style.transform = "translateX(" + (you ? "-30px" : "30px") + ")";
   beam.style.transition = "none"; beam.style.opacity = 0; beam.style.left = you ? "-45%" : "100%"; beam.style.transform = "skewX(" + (you ? "-16deg" : "16deg") + ")";
 
   ov.style.display = "block"; ov.style.pointerEvents = "auto";
+  showMorgan(you ? "L" : "R", you ? "hype" : "arms");   // commentator slides in from the attacker's side
   void ov.offsetWidth;
 
   let finished = false;
@@ -636,14 +637,76 @@ function playSpecialFx(info, done){
 
   const T = battle._fxTimers;
   T.push(setTimeout(() => { dim.style.transition = "opacity .2s"; dim.style.opacity = 1; }, 0));
-  T.push(setTimeout(() => { att.style.transition = "opacity .3s,transform .3s"; att.style.opacity = 1; att.style.transform = "translateX(0)"; }, 110));
   T.push(setTimeout(() => { name.style.transition = "opacity .16s,transform .4s cubic-bezier(.2,1.5,.4,1)"; name.style.opacity = 1; name.style.transform = "translateX(0)"; }, 310));
   T.push(setTimeout(() => { beam.style.transition = "left .36s ease,opacity .1s"; beam.style.opacity = 1; beam.style.left = you ? "100%" : "-45%"; if (info.fx === "fire" || info.fx === "smoke") fxSpawn(ov, info.fx, pal); }, 540));
   T.push(setTimeout(() => { flash.style.transition = "opacity .08s"; flash.style.opacity = 1; }, 600));
   T.push(setTimeout(() => { tgt.style.transition = "opacity .3s"; tgt.style.opacity = 1; }, 640));
   T.push(setTimeout(() => { flash.style.transition = "opacity .45s"; flash.style.opacity = 0; }, 700));
-  T.push(setTimeout(() => { [dim, att, name, tgt].forEach(e => { e.style.transition = "opacity .3s"; e.style.opacity = 0; }); }, 1500));
+  T.push(setTimeout(() => { [dim, name, tgt].forEach(e => { e.style.transition = "opacity .3s"; e.style.opacity = 0; }); }, 1500));
   T.push(setTimeout(finish, 1860));
+}
+
+/* ---- Big News Morgan commentator (slides in from the attacker's side) ----
+   Three poses (your own transparent PNG cutouts in the repo root):
+     morgan-open.png  hand raised   -> intro + final bell
+     morgan-hype.png  fists up      -> your special
+     morgan-arms.png  arms open     -> enemy special
+   He's mirrored with scaleX(-1) when he comes from the right, so he always faces in. */
+const MORGAN_POSE = { open:"morgan-open.png?v=1", hype:"morgan-hype.png?v=1", arms:"morgan-arms.png?v=1" };
+function ensureMorganStyle(){
+  if (document.getElementById("bt-morgan-style")) return;
+  const st = document.createElement("style");
+  st.id = "bt-morgan-style";
+  st.textContent =
+    "#screen-battle .bt-stage,#screen-battle .bt-feed{max-width:460px;margin-left:auto;margin-right:auto}" +
+    "#screen-battle .bt-morgan-av{display:none}" +
+    "#bt-morgan{position:absolute;bottom:0;width:190px;z-index:31;opacity:0;pointer-events:none;" +
+      "transition:transform .42s cubic-bezier(.2,.9,.3,1),opacity .3s}" +
+    "#bt-morgan img{display:block;width:100%;height:auto;" +
+      "-webkit-mask-image:linear-gradient(to bottom,#000 80%,transparent);" +
+      "mask-image:linear-gradient(to bottom,#000 80%,transparent)}" +
+    "#bt-morgan .bt-morgan-floor{position:absolute;left:50%;bottom:0;transform:translateX(-50%);" +
+      "width:112%;height:3px;border-radius:2px;" +
+      "background:linear-gradient(90deg,transparent,#d6f1ff 22%,#d6f1ff 78%,transparent);" +
+      "box-shadow:0 0 14px 4px rgba(45,140,200,.7),0 0 30px 10px rgba(45,140,200,.35)}";
+  document.head.appendChild(st);
+}
+function ensureMorganEl(){
+  if (battle._morganEl && battle._morganEl.parentNode) return battle._morganEl;
+  const el = document.createElement("div");
+  el.id = "bt-morgan";
+  el.innerHTML = '<img alt="Big News Morgan"><div class="bt-morgan-floor"></div>';
+  els.battle.appendChild(el);
+  battle._morganEl = el;
+  return el;
+}
+function showMorgan(side, pose, autoMs, cameo){
+  const el = ensureMorganEl();
+  if (battle._morganTimer){ clearTimeout(battle._morganTimer); battle._morganTimer = null; }
+  const img = el.querySelector("img");
+  const src = MORGAN_POSE[pose] || MORGAN_POSE.open;
+  if (img.getAttribute("src") !== src) img.setAttribute("src", src);
+  const left = side !== "R";
+  const flip = left ? "" : " scaleX(-1)";
+  const inset = (cameo ? -38 : 8) + "px";   // cameo shifts outward so he clears the card
+  el.style.left = left ? inset : "auto";
+  el.style.right = left ? "auto" : inset;
+  el.style.zIndex = "31";
+  el._left = left; el._flip = flip;
+  el.style.transition = "none";
+  el.style.transform = "translateX(" + (left ? "-150%" : "150%") + ")" + flip;
+  void el.offsetWidth;
+  el.style.transition = "transform .42s cubic-bezier(.2,.9,.3,1),opacity .3s";
+  el.style.opacity = 1; el.style.transform = "translateX(0)" + flip;
+  if (autoMs) battle._morganTimer = setTimeout(() => hideMorgan(), autoMs);
+}
+function hideMorgan(){
+  if (battle._morganTimer){ clearTimeout(battle._morganTimer); battle._morganTimer = null; }
+  const el = battle._morganEl; if (!el) return;
+  const flip = el._flip || "";
+  el.style.transition = "transform .42s cubic-bezier(.2,.9,.3,1),opacity .3s";
+  el.style.opacity = 0;
+  el.style.transform = "translateX(" + (el._left ? "-150%" : "150%") + ")" + flip;
 }
 
 function openBattle(save){
@@ -706,8 +769,10 @@ function renderBattleFrame(isl, oppIndex, admiral){
       '<button class="btn-ghost" id="bt-skip" type="button">Skip &raquo;</button>' +
       '<button class="btn-gold bt-cont" id="bt-cont" type="button" style="display:none">Continue &#9654;</button>' +
     '</div>';
-  els.battle.style.position = "relative";   // anchor the takeover overlay
+  els.battle.style.position = "relative";   // anchor the overlay + commentator
+  ensureMorganStyle();
   battle._fxEl = null; battle._fxTimers = [];
+  battle._morganEl = null; battle._morganTimer = null;
   $("bt-speed").addEventListener("click", () => {
     battle.speed = battle.speed === 1 ? 2 : 1;
     $("bt-speed").textContent = battle.speed === 1 ? "x2" : "x1";
@@ -742,6 +807,7 @@ function pumpBeats(){
     const b = battle.beats[battle.idx]; battle.idx++;
     emitBeat(b);
     const sp = btSpecialInfo(b.text);
+    if (!sp && (b.kind === "open" || b.kind === "close")) showMorgan("L", "open", 2600, true);   // intro / final-bell cameo
     if (sp){
       if (battle.timer){ clearInterval(battle.timer); battle.timer = null; }
       playSpecialFx(sp, () => {

@@ -159,11 +159,11 @@ function applyFilters(list){
 function marketRow(p, i, mode, save){
   const value = (mode === "buy") ? priceOf(p) : memberBounty(p);
   const full  = (save.roster || []).length >= 13;
-  let tag = "";
-  if (mode === "buy" && p._isNew) tag = ' <span style="display:inline-block;font-family:var(--display);font-size:10px;letter-spacing:.5px;color:#3a2708;background:linear-gradient(180deg,#f4cf6a,#e7b94a);border:1px solid #9a6b1e;border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle">NEW</span>';
-  else if (mode === "buy" && p._isSale) tag = ' <span style="display:inline-block;font-family:var(--display);font-size:10px;letter-spacing:.5px;color:#fff;background:linear-gradient(180deg,#d64545,#b13232);border:1px solid #8a2222;border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle">SALE</span>';
-  const nameCell = '<span class="mk-name"><span class="mk-av" style="background:' + colorFor(p.n) + '">' + initial(p.n) + '</span>' +
-        '<span class="mk-nmcol"><b>' + escapeHtml(p.n) + '</b>' + tag + (mode === "scout" ? '<span class="mk-sub">' + escapeHtml(p.c || "") + '</span>' : '') + '</span></span>';
+  let badge = "";
+  if (mode === "buy" && p._isNew)       badge = '<span class="mk-badge mk-badge-new">New!</span>';
+  else if (mode === "buy" && p._isSale) badge = '<span class="mk-badge mk-badge-sale">Sale</span>';
+  const nameCell = '<span class="mk-name"><span class="mk-avwrap"><span class="mk-av" style="background:' + colorFor(p.n) + '">' + initial(p.n) + '</span>' + badge + '</span>' +
+        '<span class="mk-nmcol"><b>' + escapeHtml(p.n) + '</b>' + (mode === "scout" ? '<span class="mk-sub">' + escapeHtml(p.c || "") + '</span>' : '') + '</span></span>';
   let act = "";
   if (mode === "buy"){
     const dis = full || save.berries < value;

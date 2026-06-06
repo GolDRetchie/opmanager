@@ -832,3 +832,18 @@ body[data-screen="screen-battle"] .app{ max-width:720px; }
 .diff-card__name{ font-family:var(--display); font-weight:400; font-size:18px; letter-spacing:.5px; color:var(--ink); line-height:1.1; }
 .diff-card__name span{ font-family:var(--body); font-size:13px; font-weight:600; color:var(--muted); letter-spacing:0; }
 .diff-card__desc{ font-family:var(--body); font-size:13px; color:var(--ink-2); margin-top:1px; }
+
+/* --- mobiel: edge-to-edge achtergrond + takeover over het hele scherm (v15) --- */
+html{ background:var(--sea-deep); }
+body{ min-height:100dvh; }
+#bt-spfx{ position:fixed !important; }
+
+/* --- market: New/Sale-badge op de avatar (v15) --- */
+.mk-avwrap{ position:relative; display:inline-flex; flex:0 0 auto; }
+.mk-badge{
+  position:absolute; top:-8px; right:-11px; font-family:var(--display); font-size:10px;
+  letter-spacing:.3px; line-height:1; color:#fff; padding:2px 8px; border-radius:12px;
+  border:1.5px solid #fff; box-shadow:0 2px 5px rgba(0,0,0,.3); transform:rotate(6deg); white-space:nowrap;
+}
+.mk-badge-new{ background:linear-gradient(180deg,#e24b4a,#a3331f); }
+.mk-badge-sale{ background:linear-gradient(180deg,#3a93d6,#1d6aa8); }

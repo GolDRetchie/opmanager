@@ -105,10 +105,15 @@ function goHome(save){
         miniStat("Crew", crewCount + " / 13") +
         miniStat("Day", (save.day || 1) + " / 30") +
       '</div>' +
-      '<div class="save-menu">' +
-        '<button class="save-btn" id="save-btn" type="button">Save <span class="save-btn__car">&#9662;</span></button>' +
-        '<div class="save-dropdown" id="save-dropdown">' +
-          '<button class="save-dropdown__item" id="save-exit" type="button">Save &amp; exit</button>' +
+      '<div class="home-top__actions" style="display:flex;align-items:center;gap:8px;margin-left:auto">' +
+        '<button class="save-btn home-inbox-btn" id="inbox-btn" data-act="inbox" type="button" style="position:relative">' +
+          'Inbox' + (unread > 0 ? ' <span class="nav-badge" style="position:absolute;top:-7px;right:-7px;margin:0;border:1.5px solid #0b2533">' + unread + '</span>' : '') +
+        '</button>' +
+        '<div class="save-menu">' +
+          '<button class="save-btn" id="save-btn" type="button">Save <span class="save-btn__car">&#9662;</span></button>' +
+          '<div class="save-dropdown" id="save-dropdown">' +
+            '<button class="save-dropdown__item" id="save-exit" type="button">Save &amp; exit</button>' +
+          '</div>' +
         '</div>' +
       '</div>' +
     '</div>' +
@@ -118,7 +123,6 @@ function goHome(save){
       '<button class="nav-btn" data-act="market" type="button">Transfer market</button>' +
       '<button class="nav-btn" data-act="training" type="button">Training</button>' +
       '<button class="nav-btn" data-act="league" type="button">League</button>' +
-      '<button class="nav-btn nav-inbox" data-act="inbox" type="button">Inbox' + (unread > 0 ? ' <span class="nav-badge">' + unread + '</span>' : '') + '</button>' +
     '</nav>' +
 
     '<div class="home-battle">' +
