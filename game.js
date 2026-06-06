@@ -359,10 +359,15 @@ function goHome(save){
     }
   } else {
     const played = save.matchday && save.matchday.day === save.day && save.matchday.played;
-    let opp;
+    let opp = null;
     if (isl.type === "navy") opp = "the Navy";
-    else { const pr = fixturesForDay(save, save.day).find(p => p[0] === 0 || p[1] === 0); opp = teamName(save, pr[0] === 0 ? pr[1] : pr[0]); }
-    if (played){
+    else { const pr = fixturesForDay(save, save.day).find(p => p[0] === 0 || p[1] === 0); if (pr) opp = teamName(save, pr[0] === 0 ? pr[1] : pr[0]); }
+    if (!opp){
+      fightInner = '<span class="battle-block__label">Day ' + save.day + ' &middot; ' + escapeHtml(isl.name) + '</span>' +
+                   '<span class="battle-block__opp">No fixture today</span>' +
+                   '<span class="battle-block__note">your crew has a bye &mdash; sail on when ready</span>' +
+                   '<button class="btn-gold home-go" id="home-fight" data-fight="rest" type="button">Sail on &#9654;</button>';
+    } else if (played){
       fightInner = '<span class="battle-block__label">Day ' + save.day + ' &middot; ' + escapeHtml(isl.name) + '</span>' +
                    '<span class="battle-block__opp">Matchday done</span>' +
                    '<span class="battle-block__note">train your crew if you like, then set sail</span>' +
@@ -375,7 +380,9 @@ function goHome(save){
     }
   }
 
-  const matchReady = isl && (isl.type === "normal" || isl.type === "navy") &&
+  const hasFixture = isl && (isl.type === "navy" ||
+                     (isl.type === "normal" && !!fixturesForDay(save, save.day).find(p => p[0] === 0 || p[1] === 0)));
+  const matchReady = hasFixture &&
                      !(save.matchday && save.matchday.day === save.day && save.matchday.played);
   const leftBox = matchReady
     ? '<button class="side-box' + (trainingCount > 0 ? " warn" : "") + '" data-act="training" type="button">' +

@@ -186,7 +186,7 @@ const PIRATES = [
   { n:"Karasu",            r:"Crewmate", p:7, d:5, s:6, c:"Free Agent", sp:[] },
   { n:"Inazuma",           r:"Crewmate", p:5, d:5, s:7, c:"Free Agent", sp:[] },
   { n:"Hack",              r:"Crewmate", p:4, d:4, s:6, c:"Free Agent", sp:[] },
-  { n:"Monkey D. Dragon",  r:"Crewmate", p:8, d:8, s:7, c:"Free Agent", sp:[] },
+  { n:"Monkey D. Dragon",  r:"Crewmate", cap:true, p:8, d:8, s:7, c:"Free Agent", sp:[] },
   { n:"Jewelrey Bonney",   r:"Crewmate", p:6, d:5, s:6, c:"Free Agent", sp:[] },
   { n:"Hajrudin",          r:"Crewmate", p:8, d:6, s:6, c:"Free Agent", sp:[] },
   { n:"Dorry",             r:"Crewmate", p:8, d:6, s:6, c:"Free Agent", sp:[] },
