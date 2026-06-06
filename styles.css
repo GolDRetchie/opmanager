@@ -847,3 +847,33 @@ body{ min-height:100dvh; }
 }
 .mk-badge-new{ background:linear-gradient(180deg,#e24b4a,#a3331f); }
 .mk-badge-sale{ background:linear-gradient(180deg,#3a93d6,#1d6aa8); }
+
+/* --- mobiel/landscape: home compact op één scherm, geen scroll --- */
+@media (max-height: 600px){
+  body[data-screen="screen-home"] .app{ padding:10px 14px; }
+
+  .home-top{ margin-bottom:10px; padding-bottom:8px; gap:8px 16px; }
+  .home-top__av{ width:34px; height:34px; font-size:18px; }
+  .home-top__crew{ font-size:17px; }
+  .home-top__cap{ font-size:11px; }
+  .home-top__stats{ gap:16px; }
+  .mini-stat__label{ font-size:9px; }
+  .mini-stat__val{ font-size:15px; }
+  .save-btn{ font-size:14px; padding:6px 11px; }
+
+  .home-nav{ margin-bottom:10px; gap:8px; }
+  .nav-btn{ font-size:14px; padding:8px 6px; flex-basis:120px; box-shadow:0 3px 0 var(--gold-d); }
+
+  .home-battle{ gap:10px; }
+  .battle-block{ flex:0 0 180px; width:180px; aspect-ratio:auto; min-height:0; padding:12px; }
+  .battle-block__label{ font-size:17px; }
+  .battle-block__opp{ font-size:19px; margin-top:5px; }
+  .battle-block__note{ font-size:11px; margin-top:5px; }
+  .home-go{ font-size:15px; padding:8px 16px; margin-top:10px; }
+
+  .battle-side{ gap:10px; }
+  .side-box{ padding:10px 13px; }
+  .side-box__title{ font-size:15px; }
+  .side-box__sub{ font-size:11px; margin-top:2px; }
+  .new-badge{ font-size:12px; padding:2px 9px; top:-8px; }
+}
