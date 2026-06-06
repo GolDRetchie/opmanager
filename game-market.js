@@ -36,7 +36,11 @@ function buyableFor(save){
   const ai = aiOwnedNames(save);
   return PIRATES.filter(p => p.r !== "Captain" && !p.navy && p.n !== save.captain && !owned.has(p.n) && !ai.has(p.n));
 }
-function priceOf(ch){ return memberBounty(ch); }   // value = current bounty (the real worth)
+function priceOf(ch){
+  const base = memberBounty(ch);
+  if (ch && ch._isSale && ch._saleDiscount > 0) return Math.round(base * (1 - ch._saleDiscount));
+  return base;
+}
 /* OSM-style odds: cheaper asking price sells faster; a low bid is more likely refused */
 function sellDayChance(ratio){ return Math.max(5, Math.min(95, Math.round(85 - 182.5 * (ratio - 0.8)))); }
 function offerSailChance(ratio){ return Math.max(5, Math.min(92, Math.round((ratio - 0.78) / (1.0 - 0.78) * 100))); }
@@ -62,6 +66,16 @@ function ensureMarket(save){
   if (!Array.isArray(save.transferList)) save.transferList = [];   // your players put up for sale
   if (!Array.isArray(save.offers))       save.offers = [];         // your pending bids on rival players
 }
+function makeListing(name, day){
+  // tenure: 2-4 days on the market before forced removal (30% / 50% / 20%)
+  const r = Math.random();
+  const tenure = r < 0.3 ? 2 : (r < 0.8 ? 3 : 4);
+  // 65% of listings get a sale phase on their penultimate day; 15-30% off
+  const hasSale = Math.random() < 0.65;
+  const saleAt = hasSale ? Math.max(1, tenure - 1) : null;
+  const saleDiscount = 0.15 + Math.random() * 0.15;
+  return { n: name, since: day, bonus: rollListingBonus(day), tenure: tenure, saleAt: saleAt, saleDiscount: saleDiscount };
+}
 function refillMarket(save){
   const day = save.day || 1;
   const listed  = new Set(save.market.listings.map(L => L.n));
@@ -69,7 +83,7 @@ function refillMarket(save){
   const owned   = allOwnedNames(save);
   const pool = PIRATES.filter(p => p.r !== "Captain" && !p.navy && !owned.has(p.n) && !listed.has(p.n) && !cooling.has(p.n));
   shuffle(pool, Math.random);   // truly random board, different every game
-  for (const p of pool){ if (save.market.listings.length >= MARKET_SIZE) break; save.market.listings.push({ n:p.n, since:day, bonus: rollListingBonus(day) }); }
+  for (const p of pool){ if (save.market.listings.length >= MARKET_SIZE) break; save.market.listings.push(makeListing(p.n, day)); }
 }
 function refreshMarket(save){              // called once when the day advances
   ensureMarket(save);
@@ -78,13 +92,14 @@ function refreshMarket(save){              // called once when the day advances
   const kept = [];
   save.market.listings.forEach(L => {
     if (owned.has(L.n)) return;                                   // bought/claimed -> off the board
-    if (day - L.since >= 2) save.market.cooldown.push({ n:L.n, returnDay: day + 2 }); // unsold 2 days -> cooldown
+    const tenure = L.tenure || 2;
+    if (day - L.since >= tenure) save.market.cooldown.push({ n:L.n, returnDay: day + 2 });
     else kept.push(L);
   });
   save.market.listings = kept;
   const due = save.market.cooldown.filter(cd => cd.returnDay <= day && !owned.has(cd.n));
   save.market.cooldown = save.market.cooldown.filter(cd => cd.returnDay > day);
-  due.forEach(cd => { if (save.market.listings.length < MARKET_SIZE && !save.market.listings.some(L => L.n === cd.n)) save.market.listings.push({ n:cd.n, since:day, bonus: rollListingBonus(day) }); });
+  due.forEach(cd => { if (save.market.listings.length < MARKET_SIZE && !save.market.listings.some(L => L.n === cd.n)) save.market.listings.push(makeListing(cd.n, day)); });
   refillMarket(save);
   save.market.day = day;
 }
@@ -95,7 +110,17 @@ function listedBuyable(save){
   const owned = allOwnedNames(save);
   return save.market.listings
     .filter(L => !owned.has(L.n))
-    .map(L => { const base = PIRATES.find(p => p.n === L.n); return base ? scaledMember(base, (typeof L.bonus === "number" ? L.bonus : rollListingBonus(day))) : null; })
+    .map(L => {
+      const base = PIRATES.find(p => p.n === L.n);
+      if (!base) return null;
+      const mem = scaledMember(base, (typeof L.bonus === "number" ? L.bonus : rollListingBonus(day)));
+      const age = day - (L.since || day);
+      mem._age = age;
+      mem._isNew = (age === 0);
+      mem._isSale = (L.saleAt != null) && (age >= L.saleAt);
+      mem._saleDiscount = L.saleDiscount || 0;
+      return mem;
+    })
     .filter(Boolean);
 }
 
@@ -134,8 +159,11 @@ function applyFilters(list){
 function marketRow(p, i, mode, save){
   const value = (mode === "buy") ? priceOf(p) : memberBounty(p);
   const full  = (save.roster || []).length >= 13;
+  let tag = "";
+  if (mode === "buy" && p._isNew) tag = ' <span style="display:inline-block;font-family:var(--display);font-size:10px;letter-spacing:.5px;color:#3a2708;background:linear-gradient(180deg,#f4cf6a,#e7b94a);border:1px solid #9a6b1e;border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle">NEW</span>';
+  else if (mode === "buy" && p._isSale) tag = ' <span style="display:inline-block;font-family:var(--display);font-size:10px;letter-spacing:.5px;color:#fff;background:linear-gradient(180deg,#d64545,#b13232);border:1px solid #8a2222;border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle">SALE</span>';
   const nameCell = '<span class="mk-name"><span class="mk-av" style="background:' + colorFor(p.n) + '">' + initial(p.n) + '</span>' +
-        '<span class="mk-nmcol"><b>' + escapeHtml(p.n) + '</b>' + (mode === "scout" ? '<span class="mk-sub">' + escapeHtml(p.c || "") + '</span>' : '') + '</span></span>';
+        '<span class="mk-nmcol"><b>' + escapeHtml(p.n) + '</b>' + tag + (mode === "scout" ? '<span class="mk-sub">' + escapeHtml(p.c || "") + '</span>' : '') + '</span></span>';
   let act = "";
   if (mode === "buy"){
     const dis = full || save.berries < value;
@@ -154,11 +182,14 @@ function marketRow(p, i, mode, save){
       act = '<button class="mk-rowbtn is-rbuy" data-i="' + i + '"' + (dis ? ' disabled' : '') + '>Buy</button>' +
             '<button class="mk-rowbtn is-offer" data-i="' + i + '">Offer</button>'; }
   }
+  const priceCell = (mode === "buy" && p._isSale)
+    ? '<td class="mk-bounty"><s style="color:var(--ink-2);opacity:.6;margin-right:5px">' + fmtShort(memberBounty(p)) + '</s>' + fmtShort(value) + '</td>'
+    : '<td class="mk-bounty">' + fmtShort(value) + '</td>';
   return '<tr>' +
       '<td>' + nameCell + '</td>' +
       '<td>' + escapeHtml(p.r) + '</td>' +
       '<td class="mk-pds">' + p.p + '-' + p.d + '-' + p.s + '</td>' +
-      '<td class="mk-bounty">' + fmtShort(value) + '</td>' +
+      priceCell +
       '<td class="mk-actcell">' + act + '</td>' +
     '</tr>';
 }

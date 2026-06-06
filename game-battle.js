@@ -459,7 +459,7 @@ function renderInbox(save){
   els.modalCancel.style.display = "none";
   els.overlay.classList.add("is-open"); els.overlay.setAttribute("aria-hidden", "false");
   const _ibm = els.overlay.querySelector(".modal"); if (_ibm) _ibm.classList.add("wide");
-  els.modalConfirm.onclick = () => closeModal();
+  els.modalConfirm.onclick = () => { closeModal(); goHome(save); };
   els.modalMsg.querySelectorAll(".ib-accept").forEach(b => b.addEventListener("click", () => inboxAccept(save, b.dataset.id)));
   els.modalMsg.querySelectorAll(".ib-decline").forEach(b => b.addEventListener("click", () => inboxDecline(save, b.dataset.id)));
   els.modalConfirm.focus();

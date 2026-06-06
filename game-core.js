@@ -62,7 +62,11 @@ function totalCrewBounty(save){
 }
 
 /* TODO: true once new characters appear on the market; placeholder for now */
-function marketHasNew(save){ return true; }
+function marketHasNew(save){
+  if (!save || !save.market || !Array.isArray(save.market.listings)) return false;
+  const day = save.day || 1;
+  return save.market.listings.some(L => (day - (L.since || day)) === 0);
+}
 
 /* captains you may pick: r==="Captain" OR cap===true; fixed captains first */
 function captainPool(){
